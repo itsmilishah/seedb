@@ -2,6 +2,12 @@ from typing import List
 from db_utils import *
 
 class SeeDB(object):
+    '''
+    Assumptions:
+    1. the table has an index column with unique, continuous
+    integer sequence
+    2. the table has no missing values
+    '''
 
     def __init__(self, db_name: str) -> None:
         '''
@@ -9,9 +15,15 @@ class SeeDB(object):
         takes lists of measures and dimensions
         '''
         conn_data = connect_to_db(db_name)
-        self.database, self.measures, self.dimensions = (conn_data['conn'],
-                conn_data['measures'], conn_data['dimensions']
+        self.database, self.measures, self.dimensions, self.table_name = (
+                conn_data['conn'], conn_data['measures'],
+                conn_data['dimensions'], conn_data['table_name'])
         # self.n_tuples =
+
+    def recommend_views(self, query, reference):
+        raise NotImplementedError
+
+    def visualize(self, ):
 
     def batch_generator(self):
         '''
@@ -20,7 +32,7 @@ class SeeDB(object):
         With feauture-first grouping ???
         '''
         # count = self.database(get tuple count)
-        pass
+        raise NotImplementedError
 
     def utility(self, view):
         raise NotImplementedError
