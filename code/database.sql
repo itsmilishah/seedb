@@ -1,3 +1,5 @@
+drop table census;
+
 create table census (
 	id INTEGER PRIMARY KEY,
 	age INTEGER NOT NULL, 
@@ -15,3 +17,5 @@ create table census (
 	hours_per_week INTEGER NOT NULL,
 	native_country VARCHAR(50) NOT NULL,
 	salary VARCHAR(50) NOT NULL);
+
+COPY census FROM '/home/surya/census_data.csv' DELIMITER ',' CSV HEADER;
