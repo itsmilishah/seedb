@@ -1,3 +1,4 @@
+import numpy as np
 from typing import List, Dict, Any
 import psycopg2
 
@@ -60,3 +61,6 @@ def select_query(conn, query: str) -> List[Any]:
     rows = cur.fetchall()
     return rows
 
+def get_distinct_values(conn, table_name: str, attribute_name: str) -> List:
+    query = 'select distinct(' + attribute_name + ') from ' + table_name
+    rows = select_query(conn, query)

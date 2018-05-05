@@ -2,7 +2,7 @@ drop table census;
 
 create table census (
 	id INTEGER PRIMARY KEY,
-	age INTEGER NOT NULL, 
+	age INTEGER NOT NULL,
 	workclass VARCHAR(50) NOT NULL,
 	fnlwgt INTEGER NOT NULL,
 	education VARCHAR(50) NOT NULL,
@@ -18,4 +18,5 @@ create table census (
 	native_country VARCHAR(50) NOT NULL,
 	salary VARCHAR(50) NOT NULL);
 
-COPY census FROM '/home/surya/census_data.csv' DELIMITER ',' CSV HEADER;
+COPY census FROM '/home/mili/Comp/umass/seedb/data/census_data.csv'
+DELIMITER ',' CSV HEADER;

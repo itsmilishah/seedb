@@ -11,26 +11,28 @@ class SeeDB(object):
 
     def __init__(self, db_name: str) -> None:
         '''
-        Connects to the database of the given name and
-        takes lists of measures and dimensions
+        Connects to the database of the given name
         '''
         conn_data = connect_to_db(db_name)
-        self.db, self.measures, self.attributes, self.table_name = (
-                conn_data['conn'], conn_data['measures'],
-                conn_data['dimensions'], conn_data['table_name'])
+        self.db, self.measures, self.attributes, self.table_name,\
+                self.n_tuples, self.columns = (conn_data['conn'],
+                        conn_data['measures'], conn_data['dimensions'],
+                        conn_data['table_name'], conn_data['count'],
+                        conn_data['columns'])
         self.func = ['average', 'min', 'max', 'sum', 'count']
 
-    def recommend_views(self, query, reference):
+    def recommend_views(self, query: str, reference: str) -> List:
         # get a batch
         # get Dq and Dr
         # now view loops start (a=8, m=6, f=5)
-        # boolean lookup table 
-
+        # boolean lookup table
         data_batch = batch_generator(i, 1000)
+        raise NotImplementedError
 
 
-    def visualize(self, ):
-        pass
+    def visualize(self, measure_name: str, function_name: str,
+            attribute_name: str, attribute_values: List) -> None:
+        raise NotImplementedError
 
     def batch_generator(self, start, size):
         '''
@@ -38,8 +40,8 @@ class SeeDB(object):
         and returns the mini-batches (indexes ??) for query.
         With feauture-first grouping ???
         '''
+        return (start, start + size)
         # count = self.database(get tuple count)
-        raise NotImplementedError
 
     def utility(self, view):
         raise NotImplementedError
