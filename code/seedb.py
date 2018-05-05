@@ -15,17 +15,24 @@ class SeeDB(object):
         takes lists of measures and dimensions
         '''
         conn_data = connect_to_db(db_name)
-        self.database, self.measures, self.dimensions, self.table_name = (
+        self.db, self.measures, self.attributes, self.table_name = (
                 conn_data['conn'], conn_data['measures'],
                 conn_data['dimensions'], conn_data['table_name'])
-        # self.n_tuples =
+        self.func = ['average', 'min', 'max', 'sum', 'count']
 
     def recommend_views(self, query, reference):
-        raise NotImplementedError
+        # get a batch
+        # get Dq and Dr
+        # now view loops start (a=8, m=6, f=5)
+        # boolean lookup table 
+
+        data_batch = batch_generator(i, 1000)
+
 
     def visualize(self, ):
+        pass
 
-    def batch_generator(self):
+    def batch_generator(self, start, size):
         '''
         Divides the data into mini-batches (indexes ??)
         and returns the mini-batches (indexes ??) for query.

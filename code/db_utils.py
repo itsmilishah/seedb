@@ -14,7 +14,7 @@ def connect_to_db(db_name: str) -> Dict[str, Any]:
     table name : (str)
     count      : (int)
     '''
-    conn = psycopg2.connect(database = db_name, user = "mili")
+    conn = psycopg2.connect(database = db_name, user = "surya")
     table_name = get_table_name(db_name)
     print(select_query(conn, 'select count(*) from ' + table_name))
     return {'conn': conn,
@@ -25,27 +25,27 @@ def connect_to_db(db_name: str) -> Dict[str, Any]:
             'columns': get_columns(db_name)}
 
 def get_table_name(db_name: str) -> str:
-    if db_name == 'cdb':
+    if db_name == 'seedb':
         return 'census'
     else:
     	raise NotImplementedError
 
 def get_measures(db_name: str) -> List[str]:
-    if db_name == 'cdb':
+    if db_name == 'seedb':
         return ['age', 'fnlwgt', 'education_num', 'capital_gain',
                 'capital_loss', 'hours_per_week']
     else:
     	raise NotImplementedError
 
 def get_dimensions(db_name: str) -> List[str]:
-    if db_name == 'cdb':
+    if db_name == 'seedb':
         return ['workclass', 'education', 'occupation', 'relationship',
                 'race', 'sex', 'native_country', 'salary', 'marital_status']
     else:
     	raise NotImplementedError
 
 def get_columns(db_name: str) -> List[str]:
-    if db_name == 'cdb':
+    if db_name == 'seedb':
         return ['id', 'age', 'workclass', 'fnlwgt', 'education',
                 'education_num', 'marital_status', 'occupation',
                 'relationship', 'race', 'sex', 'capital_gain',
