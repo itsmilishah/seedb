@@ -16,7 +16,7 @@ def connect_to_db(db_name: str) -> Dict[str, Any]:
     table name : (str)
     count      : (int)
     '''
-    conn = psycopg2.connect(database = db_name, user = "surya")
+    conn = psycopg2.connect(database = db_name, user = "mili")
     table_name = get_table_name(db_name)
     return {'conn': conn,
             'table_name': table_name,
@@ -33,8 +33,8 @@ def get_table_name(db_name: str) -> str:
 
 def get_measures(db_name: str) -> List[str]:
     if db_name == 'seedb':
-        return ['age', 'fnlwgt', 'capital_gain', 'capital_loss',
-                'hours_per_week']
+        return ['age', 'capital_gain', 'capital_loss',
+                'hours_per_week', 'fnlwgt']
     else:
     	raise NotImplementedError
 
@@ -47,11 +47,11 @@ def get_dimensions(db_name: str) -> List[str]:
 
 def get_columns(db_name: str) -> List[str]:
     if db_name == 'seedb':
-        return ['id', 'age', 'workclass', 'fnlwgt', 'education',
+        return ['id', 'age', 'workclass' 'education',
                 'education_num', 'marital_status', 'occupation',
                 'relationship', 'race', 'sex', 'capital_gain',
                 'capital_loss', 'hours_per_week', 'native_country',
-                'salary']
+                'salary']#, 'fnlwgt']
     else:
     	raise NotImplementedError
 
@@ -74,8 +74,5 @@ def kl_divergence(p1, p2):
     p1[np.where(p1<eps)] = eps
     p2[np.where(p2<eps)] = eps
     kl_divg = entropy(p1, p2)
-    if kl_divg>100:
-        print('yolo')
-        print(kl_divg,p1,p2)
     return kl_divg
 

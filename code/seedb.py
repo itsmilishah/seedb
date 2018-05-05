@@ -86,6 +86,7 @@ class SeeDB(object):
                         d = dist(q[:, itr_col], r[:, itr_col])
                         dist_views.append(d)
                         mappings_distidx_view[itr_view] = (attribute, measure, func)
+            # print(mappings_distidx_view)
 
             ## prune
             #  print(dist_views)
@@ -143,15 +144,18 @@ class SeeDB(object):
             print(view)
             attribute, measure, function = view
             # get the query table result
-            selection = '__atr__'+' , '+function + '(' + measure + ') '
+            selection = '__atr__'+' , coalesce('+function + '(' + measure + '), 0) '
             query_dataset_query = self._make_view_query(selection,
                     self.table_name, query_dataset_cond, attribute, 0, self.n_tuples)
             reference_dataset_query = self._make_view_query(selection,
                     self.table_name, reference_dataset_cond, attribute, 0, self.n_tuples)
             table_query = np.array(select_query(self.db, query_dataset_query))
             table_reference = np.array(select_query(self.db, reference_dataset_query))
-            table_query[:,1] = table_query[:,1].astype(float)
-            table_reference[:,1] = table_reference[:,1].astype(float)
+            val_query = table_query[:,1].astype(float)
+            label_query = table_query[:,0]
+            val_reference = table_reference[:,1].astype(float)
+            a = val_query
+            b = val_reference
 
             # create plot
             plt.figure()
@@ -160,12 +164,12 @@ class SeeDB(object):
             bar_width = 0.35
             opacity = 0.8
 
-            rects1 = plt.bar(index, table_query[:,1], bar_width,
+            rects1 = plt.bar(index, val_query, bar_width,
                              alpha=opacity,
                              color='b',
                              label=labels[0])
 
-            rects2 = plt.bar(index + bar_width, table_reference[:,1], bar_width,
+            rects2 = plt.bar(index + bar_width, val_reference, bar_width,
                              alpha=opacity,
                              color='g',
                              label=labels[1])
@@ -173,7 +177,7 @@ class SeeDB(object):
             plt.xlabel(attribute)
             plt.ylabel(function+'('+measure+')')
             #  plt.title('View = ',view)
-            plt.xticks(index + bar_width, tuple(table_query[:,0]), rotation=90)
+            plt.xticks(index + bar_width, tuple(label_query), rotation=90)
             plt.legend()
             plt.tight_layout()
             plt.savefig('../visualizations/married_unmarried/' + attribute+'_'+measure+'_'+function+'.png', dpi=300)
