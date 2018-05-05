@@ -84,6 +84,11 @@ class SeeDB(object):
                         itr_view += 1
                         itr_col += 1
                         d = dist(q[:, itr_col], r[:, itr_col])
+                        if d>100:
+                            print(d,q.shape)
+                            print(q[:,itr_col],r[:,itr_col])
+                            # print(d)
+                            # print(q[:,itr_col],r[:,itr_col])
                         dist_views.append(d)
                         mappings_distidx_view[itr_view] = (attribute, measure, func)
 

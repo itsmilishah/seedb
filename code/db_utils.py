@@ -68,5 +68,10 @@ def get_distinct_values(conn, table_name: str, attribute_name: str) -> List:
     rows = select_query(conn, query)
 
 def kl_divergence(p1, p2):
+    eps = 1e-5
+    p1 = p1/np.sum(p1)
+    p2 = p2/np.sum(p2)
+    p1[np.where(p1<eps)] = eps
+    p2[np.where(p2<eps)] = eps
     return entropy(p1, p2)
 
