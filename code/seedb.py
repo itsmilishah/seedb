@@ -29,22 +29,44 @@ class SeeDB(object):
         data_batch = batch_generator(i, 1000)
         raise NotImplementedError
 
-
     def visualize(self, measure_name: str, function_name: str,
             attribute_name: str, attribute_values: List) -> None:
         raise NotImplementedError
 
-    def batch_generator(self, start, size):
+    def phase_idx_generator(self, n_phases=10):
         '''
         Divides the data into mini-batches (indexes ??)
         and returns the mini-batches (indexes ??) for query.
         With feauture-first grouping ???
         '''
-        return (start, start + size)
-        # count = self.database(get tuple count)
+        batch_size = np.floor(self.n_tuples/n_phases).astype(int)
+        return [(batch_size*i, batch_size*(i+1)) for i in range(n_phases)]
 
     def utility(self, view):
         raise NotImplementedError
 
-    def prune(self):
-        raise NotImplementedError
+    def prune(self, kl_divg, iter_phase, N_phase=10, delta=0.05, k=5):
+        '''
+        input: a list of KL divergences of the candidate views, batch number
+        output: a list of indices of the views that should be discarded
+        '''
+        N = len(kl_divg)
+        # Calculate the confidence interval
+        delta = 0.05
+        a = 1.-(iter_phase/N_phase)
+        b = 2*np.log(np.log(iter_phase+1))
+        c = np.log(np.pi**2/(3*delta))
+        d = 0.5*1/(iter_phase+1)
+        conf_error = np.sqrt(a*(b+c)*d)
+
+        # sort the kl divergences
+        kl_sorted = np.sort(kl_divg)[::-1]
+        index = np.argsort(kl_divg)[::-1]
+        min_kl_divg = kl_sorted[k-1]-conf_error
+        for i in range(k, N):
+            if kl_sorted[i]+conf_error < min_kl_divg:
+                return index[i:]
+        return 0
+        
+
+        
