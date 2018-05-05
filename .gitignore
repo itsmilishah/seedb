@@ -3,3 +3,4 @@ data/*
 .*
 code/test.py
 code/test.sql
+*.png

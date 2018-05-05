@@ -60,7 +60,7 @@ def select_query(conn, query: str, return_float=False) -> List[Any]:
     cur.execute(query)
     rows = cur.fetchall()
     if return_float==True:
-        return np.array(rows).astype(float)
+        rows = np.array(rows).astype(float)
     return rows
 
 def get_distinct_values(conn, table_name: str, attribute_name: str) -> List:

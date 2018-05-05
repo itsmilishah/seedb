@@ -4,19 +4,22 @@ from db_utils import *
 
 def main(db_name):
     seedb = SeeDB(db_name)
-    # _make_view_query test
-    print()
-    query = seedb._make_view_query('avg(fnlwgt)', 'census',
-            'workclass=\' Private\'', 'marital_status', 0, 10)
-    print(query)
-    query = seedb._make_view_query('avg(fnlwgt)', 'census',
-            'workclass=\' Without-pay\'', 'marital_status', 0, 10)
-    print(query)
+    # # _make_view_query test
+    # print()
+    # query = seedb._make_view_query('avg(fnlwgt)', 'census',
+            # 'workclass=\' Private\'', 'marital_status', 0, 10)
+    # print(query)
+    # query = seedb._make_view_query('avg(fnlwgt)', 'census',
+            # 'workclass=\' Without-pay\'', 'marital_status', 0, 10)
+    # print(query)
     # print(select_query(seedb.db, query))
-    print()
-    # # recommend_views test
-    print(seedb.recommend_views('sex=\' Female\'', 'sex=\' Male\''))
-    # # convert query to float test
+
+    # recommend_views test
+    query_dataset = "marital_status in (' Married-civ-spouse', ' Married-spouse-absent', ' Married-AF-spouse')"
+    ref_dataset = "marital_status in (' Divorced', ' Never-married', ' Separated', ' Widowed')"
+    views = seedb.recommend_views(query_dataset, ref_dataset, 5)
+    # print(views)
+    # convert query to float test
     # query = 'select avg(capital_gain) \
             # from census group by workclass \
             # order by workclass limit 10;'
@@ -35,9 +38,8 @@ def main(db_name):
     # a = seedb.prune(kl_divg, iter_phase, N_phase)
     # print('views to be removed = ',a)
     # test visualization
-    # views = [('workclass','age','avg'), ('sex','capital_gain','avg')]
-    # labels = ['married','unmarried']
-    # seedb.visualize(views, labels)
+    labels = ['married','unmarried']
+    seedb.visualize(views, labels)
 
 if __name__ == '__main__':
 
