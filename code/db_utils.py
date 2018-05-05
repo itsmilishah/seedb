@@ -16,7 +16,7 @@ def connect_to_db(db_name: str) -> Dict[str, Any]:
     table name : (str)
     count      : (int)
     '''
-    conn = psycopg2.connect(database = db_name, user = "mili")
+    conn = psycopg2.connect(database = db_name, user = "surya")
     table_name = get_table_name(db_name)
     return {'conn': conn,
             'table_name': table_name,
@@ -41,7 +41,7 @@ def get_measures(db_name: str) -> List[str]:
 def get_dimensions(db_name: str) -> List[str]:
     if db_name == 'seedb':
         return ['workclass', 'education', 'occupation', 'relationship',
-                'race', 'sex', 'native_country', 'salary', 'marital_status']
+                'race', 'sex', 'native_country', 'salary']#, 'marital_status']
     else:
     	raise NotImplementedError
 
@@ -69,9 +69,13 @@ def get_distinct_values(conn, table_name: str, attribute_name: str) -> List:
 
 def kl_divergence(p1, p2):
     eps = 1e-5
-    p1 = p1/np.sum(p1)
-    p2 = p2/np.sum(p2)
+    p1 = p1/(np.sum(p1)+eps)
+    p2 = p2/(np.sum(p2)+eps)
     p1[np.where(p1<eps)] = eps
     p2[np.where(p2<eps)] = eps
-    return entropy(p1, p2)
+    kl_divg = entropy(p1, p2)
+    if kl_divg>100:
+        print('yolo')
+        print(kl_divg,p1,p2)
+    return kl_divg
 

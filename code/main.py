@@ -39,7 +39,7 @@ def main(db_name):
     # print('views to be removed = ',a)
     # test visualization
     labels = ['married','unmarried']
-    seedb.visualize(views, labels)
+    seedb.visualize(views, query_dataset, ref_dataset,  labels)
 
 if __name__ == '__main__':
 

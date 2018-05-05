@@ -84,16 +84,11 @@ class SeeDB(object):
                         itr_view += 1
                         itr_col += 1
                         d = dist(q[:, itr_col], r[:, itr_col])
-                        if d>100:
-                            print(d,q.shape)
-                            print(q[:,itr_col],r[:,itr_col])
-                            # print(d)
-                            # print(q[:,itr_col],r[:,itr_col])
                         dist_views.append(d)
                         mappings_distidx_view[itr_view] = (attribute, measure, func)
 
             ## prune
-            print(dist_views)
+            #  print(dist_views)
             pruned_view_indexes = self.prune(dist_views, itr_phase)
 
             ## delete pruned views
@@ -136,14 +131,12 @@ class SeeDB(object):
                         'order by __atr__'])
 
 
-    def visualize(self, views, labels=None) -> None:
+    def visualize(self, views, query_dataset_cond, reference_dataset_cond, labels=None) -> None:
         '''
 
         '''
         #  query_dataset_cond = "marital_status in ('Married-civ-spouse', 'Married-spouse-absent', 'Married-AF-spouse')"
         #  reference_dataset_cond = "marital_status in ('Divorced', 'Never-married', 'Separated', 'Widowed')"
-        query_dataset_cond = "sex=\' Female\'"
-        reference_dataset_cond ="sex=\' Male\'"
         if labels==None:
             labels = ['Query','Reference']
         for view in views:
