@@ -1,6 +1,7 @@
 from typing import List
 from db_utils import *
 import pdb
+import matplotlib.pyplot as plt
 
 class SeeDB(object):
     '''
@@ -23,92 +24,92 @@ class SeeDB(object):
                         conn_data['columns'])
         self.functions = ['avg', 'min', 'max', 'sum', 'count']
 
-    def recommend_views(self, query_dataset_cond: str,
-            reference_dataset_cond: str, n_phases: int = 10) -> List:
-        '''
-        Inputs:
-        query_dataset_cond     : what goes in the WHERE sql clause
-                                 to get query dataset
-        reference_dataset_cond : what goes in the WHERE sql clause
-                                 to get reference dataset
-        '''
-        # TODO : allow for multiple distance functions
-        dist = kl_divergence   # distance function for pruning
-
-        ## Initialize candidate_views to all views ##
-        candidate_views = dict()
-        for attribute in self.attributes:
-            for measure in self.measures:
-                for func in self.functions:
-                    # print(attribute, measure, func)
-                    # print(candidate_views)
-                    if attribute not in candidate_views:
-                        candidate_views[attribute] = dict()
-                    if measure not in candidate_views[attribute]:
-                        candidate_views[attribute][measure] = set()
-                    # print(candidate_views)
-                    candidate_views[attribute][measure].add(func)
-
-        ## views selection loop ##
-        itr_phase = 0
-        for start, end in self.phase_idx_generator(n_phases):
-            itr_phase += 1
-
-            itr_view = -1
-            dist_views = []
-            mappings_distidx_view = dict()
-
-            for attribute in candidate_views:
-
-                ## Sharing optimization : combine multiple aggregates
-                selections = ''
-                for measure in candidate_views[attribute]:
-                    for func in candidate_views[attribute][measure]:
-                        selections += func + '(' + measure + '), '
-                selections = selections[: -2] # removes ', ' in the end
-                query_dataset_query = self._make_view_query(selections,
-                        self.table_name, query_dataset_cond, attribute,
-                        start, end)
-                reference_dataset_query = self._make_view_query(selections,
-                        self.table_name, reference_dataset_cond, attribute,
-                        start, end)
-                q = select_query(self.db, query_dataset_query,
-                        return_float = True)
-                r = select_query(self.db, reference_dataset_query,
-                        return_float = True)
-
-                ## for pruning
-                itr_col = -1
-                for measure in candidate_views[attribute]:
-                    for func in candidate_views[attribute][measure]:
-                        itr_view += 1
-                        itr_col += 1
-                        print(q.shape, r.shape)
-                        d = dist(q[:, itr_col], r[:, itr_col])
-                        dist_views.append(d)
-                        mappings_distidx_view[iter_view] = (attribute, measure, function)
-
-            ## prune
-            pruned_view_indexes = self.prune(dist_views, itr_phase)
-
-            ## delete pruned views
-            pruned_views = [mappings_distidx_view[idx]
-                            for idx in pruned_view_indexes]
-            for attribute, measure, func in pruned_views:
-                candidate_views[attribute][measure].remove(func)
-                if len(candidate_views[attribute][measure]) == 0:
-                    del candidate_views[attribute][measure]
-                    if len(candidate_views[attribute]) == 0:
-                        del candidate_views[attribute]
-
-        ## make final recommended views ##
-        recommend_views = []
-        for attribute in candidate_views:
-            for measure in candidate_views[attribute]:
-                for func in candidate_views[attribute][measure]:
-                    recommend_views.append((attribute, measure, func))
-
-        return recommended_views
+    #  def recommend_views(self, query_dataset_cond: str,
+    #          reference_dataset_cond: str, n_phases: int = 10) -> List:
+    #      '''
+    #      Inputs:
+    #      query_dataset_cond     : what goes in the WHERE sql clause
+    #                               to get query dataset
+    #      reference_dataset_cond : what goes in the WHERE sql clause
+    #                               to get reference dataset
+    #      '''
+    #      # TODO : allow for multiple distance functions
+    #      dist = kl_divergence   # distance function for pruning
+    #
+    #      ## Initialize candidate_views to all views ##
+    #      candidate_views = dict()
+    #      for attribute in self.attributes:
+    #          for measure in self.measures:
+    #              for func in self.functions:
+    #                  # print(attribute, measure, func)
+    #                  # print(candidate_views)
+    #                  if attribute not in candidate_views:
+    #                      candidate_views[attribute] = dict()
+    #                  if measure not in candidate_views[attribute]:
+    #                      candidate_views[attribute][measure] = set()
+    #                  # print(candidate_views)
+    #                  candidate_views[attribute][measure].add(func)
+    #
+    #      ## views selection loop ##
+    #      itr_phase = 0
+    #      for start, end in self.phase_idx_generator(n_phases):
+    #          itr_phase += 1
+    #
+    #          itr_view = -1
+    #          dist_views = []
+    #          mappings_distidx_view = dict()
+    #
+    #          for attribute in candidate_views:
+    #
+    #              ## Sharing optimization : combine multiple aggregates
+    #              selections = ''
+    #              for measure in candidate_views[attribute]:
+    #                  for func in candidate_views[attribute][measure]:
+    #                      selections += func + '(' + measure + '), '
+    #              selections = selections[: -2] # removes ', ' in the end
+    #              query_dataset_query = self._make_view_query(selections,
+    #                      self.table_name, query_dataset_cond, attribute,
+    #                      start, end)
+    #              reference_dataset_query = self._make_view_query(selections,
+    #                      self.table_name, reference_dataset_cond, attribute,
+    #                      start, end)
+    #              q = select_query(self.db, query_dataset_query,
+    #                      return_float = True)
+    #              r = select_query(self.db, reference_dataset_query,
+    #                      return_float = True)
+    #
+    #              ## for pruning
+    #              itr_col = -1
+    #              for measure in candidate_views[attribute]:
+    #                  for func in candidate_views[attribute][measure]:
+    #                      itr_view += 1
+    #                      itr_col += 1
+    #                      print(q.shape, r.shape)
+    #                      d = dist(q[:, itr_col], r[:, itr_col])
+    #                      dist_views.append(d)
+    #                      mappings_distidx_view[iter_view] = (attribute, measure, function)
+    #
+    #          ## prune
+    #          pruned_view_indexes = self.prune(dist_views, itr_phase)
+    #
+    #          ## delete pruned views
+    #          pruned_views = [mappings_distidx_view[idx]
+    #                          for idx in pruned_view_indexes]
+    #          for attribute, measure, func in pruned_views:
+    #              candidate_views[attribute][measure].remove(func)
+    #              if len(candidate_views[attribute][measure]) == 0:
+    #                  del candidate_views[attribute][measure]
+    #                  if len(candidate_views[attribute]) == 0:
+    #                      del candidate_views[attribute]
+    #
+    #      ## make final recommended views ##
+    #      recommend_views = []
+    #      for attribute in candidate_views:
+    #          for measure in candidate_views[attribute]:
+    #              for func in candidate_views[attribute][measure]:
+    #                  recommend_views.append((attribute, measure, func))
+    #
+    #      return recommended_views
 
     def _make_view_query(self, selections, table_name, cond, attribute,
             start, end):
@@ -124,24 +125,26 @@ class SeeDB(object):
         '''
 
         '''
-        query_dataset_cond = "marital_status in ('Married-civ-spouse', 'Married-spouse-absent', 'Married-AF-spouse')"
-        reference_dataset_cond = "marital_status in ('Divorced', 'Never-married', 'Separated', 'Widowed')"
+        #  query_dataset_cond = "marital_status in ('Married-civ-spouse', 'Married-spouse-absent', 'Married-AF-spouse')"
+        #  reference_dataset_cond = "marital_status in ('Divorced', 'Never-married', 'Separated', 'Widowed')"
+        query_dataset_cond = "sex=\' Female\'"
+        reference_dataset_cond ="sex=\' Male\'"
         if labels==None:
             labels = ['Query','Reference']
         for view in views:
             attribute, measure, function = view
             # get the query table result
-            selection = function + '(' + measure + '), '
+            selection = attribute+' , '+function + '(' + measure + ') '
             query_dataset_query = self._make_view_query(selection,
                     self.table_name, query_dataset_cond, attribute, 0, self.n_tuples)
             reference_dataset_query = self._make_view_query(selection,
                     self.table_name, reference_dataset_cond, attribute, 0, self.n_tuples)
-            table_query = np.array(select_query(self.db, query_dataset_query))
-            table_reference = np.array(select_query(self.db, reference_dataset_query))
+            table_query = np.array(select_query(self.db, query_dataset_query, return_float=True))
+            table_reference = np.array(select_query(self.db, reference_dataset_query, return_float=True))
 
             # create plot
             plt.figure()
-            n_groups = table.shape[0]
+            n_groups = table_query.shape[0]
             index = np.arange(n_groups)
             bar_width = 0.35
             opacity = 0.8
@@ -158,14 +161,12 @@ class SeeDB(object):
 
             plt.xlabel(attribute)
             plt.ylabel(function+'('+measure+')')
-            plt.title('View = ',view)
-            plt.xticks(index + bar_width, tuple(table_query[:,0]))
+            #  plt.title('View = ',view)
+            plt.xticks(index + bar_width, tuple(table_query[:,0]), rotation=90)
             plt.legend()
             plt.tight_layout()
             plt.savefig(attribute+'_'+measure+'_'+function+'.png', dpi=300)
             plt.close()
-        pdb.set_trace()
-
 
     def phase_idx_generator(self, n_phases=10):
         '''

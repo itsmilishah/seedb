@@ -9,9 +9,9 @@ def main(db_name):
             # 'workclass=\' Private\'', 'marital_status', 0, 10)
     # print(query)
     # print(select_query(seedb.db, query))
-    print()
+    
     # # recommend_views test
-    print(seedb.recommend_views('sex=\' Female\'', 'sex=\' Male\''))
+    #  print(seedb.recommend_views('sex=\' Female\'', 'sex=\' Male\''))
     # # convert query to float test
     # query = 'select avg(capital_gain) \
             # from census group by workclass \
@@ -31,7 +31,7 @@ def main(db_name):
     # a = seedb.prune(kl_divg, iter_phase, N_phase)
     # print('views to be removed = ',a)
     # test visualization
-    views = [('workclass','age','avg'), ('sex','capital_gain','avg')]
+    views = [('workclass','age','avg'), ('education','capital_gain','avg')]
     labels = ['married','unmarried']
     seedb.visualize(views, labels)
 
