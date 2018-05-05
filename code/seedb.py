@@ -1,5 +1,6 @@
 from typing import List
 from db_utils import *
+import pdb
 
 class SeeDB(object):
     '''
@@ -119,9 +120,52 @@ class SeeDB(object):
                         'order by', attribute])
 
 
-    def visualize(self, measure_name: str, function_name: str,
-            attribute_name: str, attribute_values: List) -> None:
-        raise NotImplementedError
+    def visualize(self, views, labels=None) -> None:
+        '''
+
+        '''
+        query_dataset_cond = "marital_status in ('Married-civ-spouse', 'Married-spouse-absent', 'Married-AF-spouse')"
+        reference_dataset_cond = "marital_status in ('Divorced', 'Never-married', 'Separated', 'Widowed')"
+        if labels==None:
+            labels = ['Query','Reference']
+        for view in views:
+            attribute, measure, function = view
+            # get the query table result
+            selection = function + '(' + measure + '), '
+            query_dataset_query = self._make_view_query(selection,
+                    self.table_name, query_dataset_cond, attribute, 0, self.n_tuples)
+            reference_dataset_query = self._make_view_query(selection,
+                    self.table_name, reference_dataset_cond, attribute, 0, self.n_tuples)
+            table_query = np.array(select_query(self.db, query_dataset_query))
+            table_reference = np.array(select_query(self.db, reference_dataset_query))
+
+            # create plot
+            plt.figure()
+            n_groups = table.shape[0]
+            index = np.arange(n_groups)
+            bar_width = 0.35
+            opacity = 0.8
+
+            rects1 = plt.bar(index, table_query[:,1], bar_width,
+                             alpha=opacity,
+                             color='b',
+                             label=labels[0])
+
+            rects2 = plt.bar(index + bar_width, table_reference[:,1], bar_width,
+                             alpha=opacity,
+                             color='g',
+                             label=labels[1])
+
+            plt.xlabel(attribute)
+            plt.ylabel(function+'('+measure+')')
+            plt.title('View = ',view)
+            plt.xticks(index + bar_width, tuple(table_query[:,0]))
+            plt.legend()
+            plt.tight_layout()
+            plt.savefig(attribute+'_'+measure+'_'+function+'.png', dpi=300)
+            plt.close()
+        pdb.set_trace()
+
 
     def phase_idx_generator(self, n_phases=10):
         '''

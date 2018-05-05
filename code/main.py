@@ -30,6 +30,10 @@ def main(db_name):
     # N_phase = 10
     # a = seedb.prune(kl_divg, iter_phase, N_phase)
     # print('views to be removed = ',a)
+    # test visualization
+    views = [('workclass','age','avg'), ('sex','capital_gain','avg')]
+    labels = ['married','unmarried']
+    seedb.visualize(views, labels)
 
 if __name__ == '__main__':
 
