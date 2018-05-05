@@ -201,6 +201,13 @@ class SeeDB(object):
         if iter_phase == 1:
             return []
         N = len(kl_divg)
+
+        # sort the kl divergences
+        kl_sorted = np.sort(kl_divg)[::-1]
+        index = np.argsort(kl_divg)[::-1]
+        if iter_phase == N_phase:
+            return index[k:]
+        
         # Calculate the confidence interval
         delta = 0.05
         a = 1.-(iter_phase/N_phase)
@@ -208,10 +215,7 @@ class SeeDB(object):
         c = np.log(np.pi**2/(3*delta))
         d = 0.5*1/(iter_phase+1)
         conf_error = np.sqrt(a*(b+c)*d)
-
-        # sort the kl divergences
-        kl_sorted = np.sort(kl_divg)[::-1]
-        index = np.argsort(kl_divg)[::-1]
+        
         min_kl_divg = kl_sorted[k-1]-conf_error
         for i in range(k, N):
             if kl_sorted[i]+conf_error < min_kl_divg:

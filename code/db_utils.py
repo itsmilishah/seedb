@@ -16,7 +16,7 @@ def connect_to_db(db_name: str) -> Dict[str, Any]:
     table name : (str)
     count      : (int)
     '''
-    conn = psycopg2.connect(database = db_name, user = "mili")
+    conn = psycopg2.connect(database = db_name, user = "surya")
     table_name = get_table_name(db_name)
     return {'conn': conn,
             'table_name': table_name,

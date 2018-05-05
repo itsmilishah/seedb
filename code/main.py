@@ -46,3 +46,6 @@ if __name__ == '__main__':
     db_name = 'seedb'
     main(db_name)
 
+
+# sum and relationship 
+# age, capital gain, capital loss, hours per week and fnlwgt
