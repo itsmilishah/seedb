@@ -40,13 +40,10 @@ class SeeDB(object):
         for attribute in self.attributes:
             for measure in self.measures:
                 for func in self.functions:
-                    # print(attribute, measure, func)
-                    # print(candidate_views)
                     if attribute not in candidate_views:
                         candidate_views[attribute] = dict()
                     if measure not in candidate_views[attribute]:
                         candidate_views[attribute][measure] = set()
-                    # print(candidate_views)
                     candidate_views[attribute][measure].add(func)
 
         ## views selection loop ##
@@ -64,7 +61,7 @@ class SeeDB(object):
                 selections = ''
                 for measure in candidate_views[attribute]:
                     for func in candidate_views[attribute][measure]:
-                        selections += func + '(' + measure + '), '
+                        selections += 'coalesce(' + func + '(' + measure + '), 0), '
                 selections = selections[: -2] # removes ', ' in the end
                 query_dataset_query = self._make_view_query(selections,
                         self.table_name, query_dataset_cond, attribute,
@@ -83,10 +80,9 @@ class SeeDB(object):
                     for func in candidate_views[attribute][measure]:
                         itr_view += 1
                         itr_col += 1
-                        print(q.shape, r.shape)
                         d = dist(q[:, itr_col], r[:, itr_col])
                         dist_views.append(d)
-                        mappings_distidx_view[iter_view] = (attribute, measure, function)
+                        mappings_distidx_view[itr_view] = (attribute, measure, func)
 
             ## prune
             pruned_view_indexes = self.prune(dist_views, itr_phase)
@@ -102,22 +98,26 @@ class SeeDB(object):
                         del candidate_views[attribute]
 
         ## make final recommended views ##
-        recommend_views = []
+        recommended_views = []
         for attribute in candidate_views:
             for measure in candidate_views[attribute]:
                 for func in candidate_views[attribute][measure]:
-                    recommend_views.append((attribute, measure, func))
+                    recommended_views.append((attribute, measure, func))
 
         return recommended_views
 
     def _make_view_query(self, selections, table_name, cond, attribute,
             start, end):
-        return ' '.join(['select', selections,
-                        'from', table_name,
-                        'where', cond,
-                        'and id>=' + str(start), 'and', 'id<' + str(end),
-                        'group by', attribute,
-                        'order by', attribute])
+        return ' '.join(['with attrs as (select distinct('
+                            + attribute + ') as __atr__',
+                            'from', table_name, ')',
+                        'select', selections,
+                        'from', 'attrs left outer join', table_name,
+                            'on', '__atr__ =', attribute,
+                            'and', cond,
+                            'and id>=' + str(start), 'and', 'id<' + str(end),
+                        'group by __atr__',
+                        'order by __atr__'])
 
 
     def visualize(self, views, labels=None) -> None:

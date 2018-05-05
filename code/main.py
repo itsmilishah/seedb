@@ -4,10 +4,14 @@ from db_utils import *
 
 def main(db_name):
     seedb = SeeDB(db_name)
-    # # _make_view_query test
-    # query = seedb._make_view_query('avg(fnlwgt)', 'census',
-            # 'workclass=\' Private\'', 'marital_status', 0, 10)
-    # print(query)
+    # _make_view_query test
+    print()
+    query = seedb._make_view_query('avg(fnlwgt)', 'census',
+            'workclass=\' Private\'', 'marital_status', 0, 10)
+    print(query)
+    query = seedb._make_view_query('avg(fnlwgt)', 'census',
+            'workclass=\' Without-pay\'', 'marital_status', 0, 10)
+    print(query)
     # print(select_query(seedb.db, query))
     print()
     # # recommend_views test
@@ -31,9 +35,9 @@ def main(db_name):
     # a = seedb.prune(kl_divg, iter_phase, N_phase)
     # print('views to be removed = ',a)
     # test visualization
-    views = [('workclass','age','avg'), ('sex','capital_gain','avg')]
-    labels = ['married','unmarried']
-    seedb.visualize(views, labels)
+    # views = [('workclass','age','avg'), ('sex','capital_gain','avg')]
+    # labels = ['married','unmarried']
+    # seedb.visualize(views, labels)
 
 if __name__ == '__main__':
 
