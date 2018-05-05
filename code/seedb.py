@@ -20,10 +20,10 @@ class SeeDB(object):
                         conn_data['measures'], conn_data['dimensions'],
                         conn_data['table_name'], conn_data['count'],
                         conn_data['columns'])
-        self.functions = ['average', 'min', 'max', 'sum', 'count']
+        self.functions = ['avg', 'min', 'max', 'sum', 'count']
 
     def recommend_views(self, query_dataset_cond: str,
-            reference_dataset_cond: str, phase_size: int = 10) -> List:
+            reference_dataset_cond: str, n_phases: int = 10) -> List:
         '''
         Inputs:
         query_dataset_cond     : what goes in the WHERE sql clause
@@ -39,65 +39,82 @@ class SeeDB(object):
         for attribute in self.attributes:
             for measure in self.measures:
                 for func in self.functions:
+                    # print(attribute, measure, func)
+                    # print(candidate_views)
                     if attribute not in candidate_views:
                         candidate_views[attribute] = dict()
-                        if measure not in candidate_views[attribute]:
-                            candidate_views[attribute][measure] = set()
+                    if measure not in candidate_views[attribute]:
+                        candidate_views[attribute][measure] = set()
+                    # print(candidate_views)
                     candidate_views[attribute][measure].add(func)
 
-        ## view selection loop ##
-        itr_phase = -1
-        for start, end in self.phase_idx_generator():
+        ## views selection loop ##
+        itr_phase = 0
+        for start, end in self.phase_idx_generator(n_phases):
             itr_phase += 1
-            mappings_view_dist = dict()
+
+            itr_view = -1
             dist_views = []
+            mappings_distidx_view = dict()
+
             for attribute in candidate_views:
 
                 ## Sharing optimization : combine multiple aggregates
                 selections = ''
-                for measure in candidate_views[attributes]:
-                    for view in candidate_views[attributes][measure]
-                        selections += func + '(' + measure + '), '
-                selections = selections[: -3] # removes ', ' in the end
-                query_dataset_query = self._make_view_query(selections,
-                        table_name, query_dataset_cond, attribute)
-                reference_dataset_query = self._make_view_query(selections,
-                        table_name, reference_dataset_cond, attribute)
-                q = select_query(self.conn, query_dataset_query,
-                        return_float = True)
-                r = select_query(self.conn, reference_dataset_query,
-                        return_float = True)
-
-                ## begin_pruning
-                idx = -1
                 for measure in candidate_views[attribute]:
                     for func in candidate_views[attribute][measure]:
-                        idx += 1
-                        assert ((attribute, measure, function)) not in mappings_view_dist
-                        mappings_view_dist[(attribute, measure, function)] = idx
-                        dist_views.append(dist(q[: idx], r[:, idx]))
-            dist_views = np.array(dist_views)
-            not_pruned_view_indexes = self.prune(dist_views)
-                # TODO : while pruning, make sure to remove the
-                #        empty attibutes from candidate_views
-                # TODO :
-                # for each phase:
-                # mapping : (a, m, f) => list of KL divergences
-                    # for each attr:
-                        # for each view, measure:
-                    # q = ...
-                    # r = ...
-                        # for each view:
-                            # for each measure:
+                        selections += func + '(' + measure + '), '
+                selections = selections[: -2] # removes ', ' in the end
+                query_dataset_query = self._make_view_query(selections,
+                        self.table_name, query_dataset_cond, attribute,
+                        start, end)
+                reference_dataset_query = self._make_view_query(selections,
+                        self.table_name, reference_dataset_cond, attribute,
+                        start, end)
+                q = select_query(self.db, query_dataset_query,
+                        return_float = True)
+                r = select_query(self.db, reference_dataset_query,
+                        return_float = True)
 
-        raise NotImplementedError
+                ## for pruning
+                itr_col = -1
+                for measure in candidate_views[attribute]:
+                    for func in candidate_views[attribute][measure]:
+                        itr_view += 1
+                        itr_col += 1
+                        print(q.shape, r.shape)
+                        d = dist(q[:, itr_col], r[:, itr_col])
+                        dist_views.append(d)
+                        mappings_distidx_view[iter_view] = (attribute, measure, function)
 
-    def _make_view_query(selections, table_name, cond, attribute,
+            ## prune
+            pruned_view_indexes = self.prune(dist_views, itr_phase)
+
+            ## delete pruned views
+            pruned_views = [mappings_distidx_view[idx]
+                            for idx in pruned_view_indexes]
+            for attribute, measure, func in pruned_views:
+                candidate_views[attribute][measure].remove(func)
+                if len(candidate_views[attribute][measure]) == 0:
+                    del candidate_views[attribute][measure]
+                    if len(candidate_views[attribute]) == 0:
+                        del candidate_views[attribute]
+
+        ## make final recommended views ##
+        recommend_views = []
+        for attribute in candidate_views:
+            for measure in candidate_views[attribute]:
+                for func in candidate_views[attribute][measure]:
+                    recommend_views.append((attribute, measure, func))
+
+        return recommended_views
+
+    def _make_view_query(self, selections, table_name, cond, attribute,
             start, end):
-        return ' '.join(['select', query,
+        return ' '.join(['select', selections,
                         'from', table_name,
-                        'where', query_dataset_cond,
-                        'and id >= ', start, 'id < ', end,
+                        'where', cond,
+                        'and id>=' + str(start), 'and', 'id<' + str(end),
                         'group by', attribute,
                         'order by', attribute])
 
@@ -120,6 +137,9 @@ class SeeDB(object):
         input: a list of KL divergences of the candidate views, batch number
         output: a list of indices of the views that should be discarded
         '''
+        kl_divg = np.array(kl_divg)
+        if iter_phase == 1:
+            return []
         N = len(kl_divg)
         # Calculate the confidence interval
         delta = 0.05
@@ -136,7 +156,5 @@ class SeeDB(object):
         for i in range(k, N):
             if kl_sorted[i]+conf_error < min_kl_divg:
                 return index[i:]
-        return 0
-
-
+        return []
 

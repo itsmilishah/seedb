@@ -16,9 +16,8 @@ def connect_to_db(db_name: str) -> Dict[str, Any]:
     table name : (str)
     count      : (int)
     '''
-    conn = psycopg2.connect(database = db_name, user = "surya")
+    conn = psycopg2.connect(database = db_name, user = "mili")
     table_name = get_table_name(db_name)
-    print(select_query(conn, 'select count(*) from ' + table_name))
     return {'conn': conn,
             'table_name': table_name,
             'measures': get_measures(db_name),
@@ -34,8 +33,8 @@ def get_table_name(db_name: str) -> str:
 
 def get_measures(db_name: str) -> List[str]:
     if db_name == 'seedb':
-        return ['age', 'fnlwgt', 'education_num', 'capital_gain',
-                'capital_loss', 'hours_per_week']
+        return ['age', 'fnlwgt', 'capital_gain', 'capital_loss',
+                'hours_per_week']
     else:
     	raise NotImplementedError
 
