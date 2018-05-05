@@ -1,6 +1,7 @@
 import numpy as np
 from typing import List, Dict, Any
 import psycopg2
+from scipy.stats import entropy
 
 def create_psql_db(data_file_path: str, db_name: str) -> None:
     raise NotImplementedError
@@ -55,12 +56,18 @@ def get_columns(db_name: str) -> List[str]:
     else:
     	raise NotImplementedError
 
-def select_query(conn, query: str) -> List[Any]:
+def select_query(conn, query: str, return_float=False) -> List[Any]:
     cur = conn.cursor()
     cur.execute(query)
     rows = cur.fetchall()
+    if return_float==True:
+        return np.array(rows).astype(float)
     return rows
 
 def get_distinct_values(conn, table_name: str, attribute_name: str) -> List:
     query = 'select distinct(' + attribute_name + ') from ' + table_name
     rows = select_query(conn, query)
+
+def kl_divergence(p1, p2):
+    return entropy(p1, p2)
+
