@@ -3,7 +3,15 @@ import numpy as np
 from db_utils import *
 
 def main(db_name):
-    seedb = SeeDB(db_name)
+    user = 'mili'
+    measures = ['age', 'capital_gain', 'capital_loss', 'hours_per_week']
+    # dimensions = ['workclass', 'education', 'occupation', 'relationship',
+                # 'race', 'sex', 'native_country', 'salary']
+    dimensions = ['workclass', 'education', 'occupation', 'relationship',
+                'race', 'native_country', 'salary']
+    table_name = 'census'
+
+    seedb = SeeDB(db_name, user, measures, dimensions, table_name)
     # # _make_view_query test
     # print()
     # query = seedb._make_view_query('avg(fnlwgt)', 'census',
@@ -15,8 +23,12 @@ def main(db_name):
     # print(select_query(seedb.db, query))
 
     # recommend_views test
-    query_dataset = "marital_status in (' Married-civ-spouse', ' Married-spouse-absent', ' Married-AF-spouse')"
-    ref_dataset = "marital_status in (' Divorced', ' Never-married', ' Separated', ' Widowed')"
+    # query_dataset = "marital_status in (' Married-civ-spouse', ' Married-spouse-absent', ' Married-AF-spouse')"
+    # ref_dataset = "marital_status in (' Divorced', ' Never-married', ' Separated', ' Widowed')"
+    query_dataset = 'sex=\' Female\''
+    ref_dataset = 'sex=\' Male\''
+
+
     views = seedb.recommend_views(query_dataset, ref_dataset, 5)
     # print(views)
     # convert query to float test
@@ -38,8 +50,9 @@ def main(db_name):
     # a = seedb.prune(kl_divg, iter_phase, N_phase)
     # print('views to be removed = ',a)
     # test visualization
-    labels = ['married','unmarried']
-    seedb.visualize(views, query_dataset, ref_dataset,  labels)
+    labels = ['Female','Male']
+    seedb.visualize(views, query_dataset, ref_dataset,  labels,
+            folder_path = '../visualizations/sex/')
 
 if __name__ == '__main__':
 
@@ -47,5 +60,5 @@ if __name__ == '__main__':
     main(db_name)
 
 
-# sum and relationship 
+# sum and relationship
 # age, capital gain, capital loss, hours per week and fnlwgt

@@ -12,17 +12,24 @@ class SeeDB(object):
     3. Pruning distance measure has KL-divergence
     '''
 
-    def __init__(self, db_name: str) -> None:
+    def __init__(self, db_name: str, user: str, measures: List[str],
+            attributes: List[str], table_name: str) -> None:
         '''
         Connects to the database of the given name
         '''
-        conn_data = connect_to_db(db_name)
-        self.db, self.measures, self.attributes, self.table_name,\
-                self.n_tuples, self.columns = (conn_data['conn'],
-                        conn_data['measures'], conn_data['dimensions'],
-                        conn_data['table_name'], conn_data['count'],
-                        conn_data['columns'])
+        conn_data = connect_to_db(db_name, user)
+        # self.db, self.measures, self.attributes, self.table_name,\
+                # self.n_tuples, self.columns = (conn_data['conn'],
+                        # conn_data['measures'], conn_data['dimensions'],
+                        # conn_data['table_name'], conn_data['count'],
+                        # conn_data['columns'])
+
+        self.db, self.n_tuples = (conn_data['conn'], conn_data['count'])
+        self.measures = measures
+        self.attributes = attributes
+        self.table_name = table_name
         self.functions = ['avg', 'min', 'max', 'sum', 'count']
+        print(self.n_tuples)
 
     def recommend_views(self, query_dataset_cond: str,
             reference_dataset_cond: str, k: int = 5,
@@ -89,7 +96,6 @@ class SeeDB(object):
             # print(mappings_distidx_view)
 
             ## prune
-            #  print(dist_views)
             pruned_view_indexes = self.prune(dist_views, itr_phase)
 
             ## delete pruned views
@@ -105,16 +111,16 @@ class SeeDB(object):
 
 
         ## make final recommended views ##
-        dist_views = np.array(dist_views)
-        sort_idxs = np.argsort(dist_views)
-        selected_views_idxs = sort_idxs[-1 * k :]
-        recommended_views = [mappings_distidx_view[idx]
-                            for idx in selected_views_idxs]
-        # recommended_views = []
-        # for attribute in candidate_views:
-            # for measure in candidate_views[attribute]:
-                # for func in candidate_views[attribute][measure]:
-                    # recommended_views.append((attribute, measure, func))
+        # dist_views = np.array(dist_views)
+        # sort_idxs = np.argsort(dist_views)
+        # selected_views_idxs = sort_idxs[-1 * k :]
+        # recommended_views = [mappings_distidx_view[idx]
+                            # for idx in selected_views_idxs]
+        recommended_views = []
+        for attribute in candidate_views:
+            for measure in candidate_views[attribute]:
+                for func in candidate_views[attribute][measure]:
+                    recommended_views.append((attribute, measure, func))
 
         return recommended_views
 
@@ -132,7 +138,8 @@ class SeeDB(object):
                         'order by __atr__'])
 
 
-    def visualize(self, views, query_dataset_cond, reference_dataset_cond, labels=None) -> None:
+    def visualize(self, views, query_dataset_cond, reference_dataset_cond,
+            labels=None, folder_path = '../visualizations') -> None:
         '''
 
         '''
@@ -180,7 +187,7 @@ class SeeDB(object):
             plt.xticks(index + bar_width, tuple(label_query), rotation=90)
             plt.legend()
             plt.tight_layout()
-            plt.savefig('../visualizations/married_unmarried/' + attribute+'_'+measure+'_'+function+'.png', dpi=300)
+            plt.savefig(folder_path + attribute+'_'+measure+'_'+function+'.png', dpi=300)
             plt.close()
 
     def phase_idx_generator(self, n_phases=10):
@@ -207,7 +214,7 @@ class SeeDB(object):
         index = np.argsort(kl_divg)[::-1]
         if iter_phase == N_phase:
             return index[k:]
-        
+
         # Calculate the confidence interval
         delta = 0.05
         a = 1.-(iter_phase/N_phase)
@@ -215,7 +222,7 @@ class SeeDB(object):
         c = np.log(np.pi**2/(3*delta))
         d = 0.5*1/(iter_phase+1)
         conf_error = np.sqrt(a*(b+c)*d)
-        
+
         min_kl_divg = kl_sorted[k-1]-conf_error
         for i in range(k, N):
             if kl_sorted[i]+conf_error < min_kl_divg:

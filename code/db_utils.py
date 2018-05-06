@@ -6,24 +6,39 @@ from scipy.stats import entropy
 def create_psql_db(data_file_path: str, db_name: str) -> None:
     raise NotImplementedError
 
-def connect_to_db(db_name: str) -> Dict[str, Any]:
+def connect_to_db(db_name: str, user: str) -> Dict[str, Any]:
     '''
     Connects to the given database
     Returns a dict:
     conn       : db connection object
-    measures   : (list) the measures of the db
-    dimensions : (list) the dimensions of the db
-    table name : (str)
     count      : (int)
     '''
-    conn = psycopg2.connect(database = db_name, user = "surya")
+    conn = psycopg2.connect(database = db_name, user = user)
     table_name = get_table_name(db_name)
     return {'conn': conn,
-            'table_name': table_name,
-            'measures': get_measures(db_name),
-            'dimensions': get_dimensions(db_name),
-            'count': int(select_query(conn, ('select count(*) from ' + table_name))[0][0]),
-            'columns': get_columns(db_name)}
+            'count': int(select_query(conn,
+                ('select count(*) from ' + table_name))[0][0]),
+            }
+
+# def connect_to_db(db_name: str, user: str) -> Dict[str, Any]:
+    # '''
+    # Connects to the given database
+    # Returns a dict:
+    # conn       : db connection object
+    # measures   : (list) the measures of the db
+    # dimensions : (list) the dimensions of the db
+    # table name : (str)
+    # count      : (int)
+    # '''
+    # conn = psycopg2.connect(database = db_name, user = user)
+    # table_name = get_table_name(db_name)
+    # return {'conn': conn,
+            # 'table_name': table_name,
+            # 'measures': get_measures(db_name),
+            # 'dimensions': get_dimensions(db_name),
+            # 'count': int(select_query(conn,
+                # ('select count(*) from ' + table_name))[0][0]),
+            # 'columns': get_columns(db_name)}
 
 def get_table_name(db_name: str) -> str:
     if db_name == 'seedb':
